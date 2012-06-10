@@ -23,17 +23,18 @@
 typedef struct PktBuf PktBuf;
 struct PktBuf {
 	uint8_t *buf;
+	struct event *ev;
+
 	int buf_len;
 	int write_pos;
 	int pktlen_pos;
-
 	int send_pos;
 	struct event *ev;
 	PgSocket *queued_dst;
 
-	unsigned failed:1;
-	unsigned sending:1;
-	unsigned fixed_buf:1;
+	bool failed;
+	bool sending;
+	bool fixed_buf;
 };
 
 /*
@@ -64,6 +65,7 @@ void pktbuf_put_uint32(PktBuf *buf, uint32_t val);
 void pktbuf_put_uint64(PktBuf *buf, uint64_t val);
 void pktbuf_put_string(PktBuf *buf, const char *str);
 void pktbuf_put_bytes(PktBuf *buf, const void *data, int len);
+void pktbuf_move_bytes(PktBuf *buf, const void *data, int len);
 void pktbuf_finish_packet(PktBuf *buf);
 #define pktbuf_written(buf) ((buf)->write_pos)
 
@@ -109,6 +111,9 @@ void pktbuf_write_ExtQuery(PktBuf *buf, const char *query, int nargs, ...);
 #define pktbuf_write_SSLRequest(buf) \
 	pktbuf_write_generic(buf, PKT_SSLREQ, "")
 
+#define pktbuf_write_CloseComplete(buf) \
+	pktbuf_write_generic(buf, '3', "")
+
 /*
  * Shortcut for creating DataRow in memory.
  */
@@ -146,5 +151,7 @@ void pktbuf_write_ExtQuery(PktBuf *buf, const char *query, int nargs, ...);
 #define SEND_PasswordMessage(res, sk, psw) \
 	SEND_wrap(512, pktbuf_write_PasswordMessage, res, sk, psw)
 
-void pktbuf_cleanup(void);
+#define SEND_CloseComplete(res, sk) \
+	SEND_wrap(8, pktbuf_write_CloseComplete, res, sk)
 
+void pktbuf_cleanup(void);

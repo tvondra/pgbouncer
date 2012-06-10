@@ -57,7 +57,7 @@ static inline bool iobuf_sane(const IOBuf *io)
 	return (io == NULL) ||
 		(  io->parse_pos >= io->done_pos
 		&& io->recv_pos >= io->parse_pos
-		&& (unsigned)cf_sbuf_len >= io->recv_pos);
+		&& cf_sbuf_len >= io->recv_pos);
 }
 
 static inline bool iobuf_empty(const IOBuf *io)
@@ -101,6 +101,57 @@ static inline unsigned iobuf_parse_limit(const IOBuf *buf, struct MBuf *mbuf, un
 		avail = limit;
 	mbuf_init_fixed_reader(mbuf, pos, avail);
 	return avail;
+}
+
+/* recv */
+static inline int _MUSTCHECK iobuf_recv_limit(IOBuf *io, int fd, unsigned len)
+{
+	uint8_t *pos = io->buf + io->recv_pos;
+	int got;
+	unsigned avail = iobuf_amount_recv(io);
+
+	if (len > avail)
+		len = avail;
+
+	Assert(len > 0);
+
+	got = safe_recv(fd, pos, len, 0);
+	if (got > 0)
+		io->recv_pos += got;
+	return got;
+}
+
+static inline bool _MUSTCHECK iobuf_write(IOBuf *io, const void *data, int len)
+{
+	uint8_t *pos = io->buf + io->recv_pos;
+	int avail = iobuf_amount_recv(io);
+
+	if (len > avail)
+		return false;
+
+	memcpy(pos, data, len);
+	io->recv_pos += len;
+	return true;
+}
+
+static inline int _MUSTCHECK iobuf_recv_max(IOBuf *io, int fd)
+{
+	return iobuf_recv_limit(io, fd, iobuf_amount_recv(io));
+}
+
+/* send tagged data */
+static inline int _MUSTCHECK iobuf_send_pending(IOBuf *io, int fd)
+{
+	uint8_t *pos = io->buf + io->done_pos;
+	int len, res;
+
+	len = io->parse_pos - io->done_pos;
+	Assert(len > 0);
+
+	res = safe_send(fd, pos, len, 0);
+	if (res > 0)
+		io->done_pos += res;
+	return res;
 }
 
 static inline void iobuf_tag_send(IOBuf *io, unsigned len)

@@ -82,6 +82,7 @@ static void construct_client(void *obj)
 	memset(client, 0, sizeof(PgSocket));
 	list_init(&client->head);
 	sbuf_init(&client->sbuf, client_proto);
+	init_client_plan_cache(client);
 	client->state = CL_FREE;
 }
 
@@ -92,6 +93,7 @@ static void construct_server(void *obj)
 	memset(server, 0, sizeof(PgSocket));
 	list_init(&server->head);
 	sbuf_init(&server->sbuf, server_proto);
+	init_server_plan_cache(server);
 	server->state = SV_FREE;
 }
 

@@ -14,6 +14,7 @@ pgbouncer_SOURCES = \
 	src/objects.c \
 	src/pam.c \
 	src/pktbuf.c \
+	src/plancache.c \
 	src/pooler.c \
 	src/proto.c \
 	src/sbuf.c \
@@ -34,6 +35,7 @@ pgbouncer_SOURCES = \
 	include/objects.h \
 	include/pam.h \
 	include/pktbuf.h \
+	include/plancache.h \
 	include/pooler.h \
 	include/proto.h \
 	include/sbuf.h \

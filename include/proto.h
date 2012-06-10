@@ -36,6 +36,7 @@ struct PktHdr {
 	unsigned len;
 	struct MBuf data;
 };
+typedef struct PktHdr PktHdr;
 
 bool get_header(struct MBuf *data, PktHdr *pkt) _MUSTCHECK;
 

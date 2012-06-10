@@ -83,29 +83,29 @@ typedef struct PgPool PgPool;
 typedef struct PgStats PgStats;
 typedef union PgAddr PgAddr;
 typedef enum SocketState SocketState;
-typedef struct PktHdr PktHdr;
 
-extern int cf_sbuf_len;
+extern unsigned int cf_sbuf_len;
 
 #include "util.h"
-#include "iobuf.h"
-#include "sbuf.h"
 #include "pktbuf.h"
 #include "varcache.h"
 #include "dnslookup.h"
+#include "iobuf.h"
+#include "sbuf.h"
+#include "proto.h"
 
 #include "admin.h"
 #include "loader.h"
 #include "client.h"
 #include "server.h"
 #include "pooler.h"
-#include "proto.h"
 #include "objects.h"
 #include "stats.h"
 #include "takeover.h"
 #include "janitor.h"
 #include "hba.h"
 #include "pam.h"
+#include "plancache.h"
 
 /* to avoid allocations will use static buffers */
 #define MAX_DBNAME	64
@@ -371,6 +371,8 @@ struct PgSocket {
 		PgDatabase *db;			/* cache db while doing auth query */
 	};
 
+	PlanCache	plan_cache;
+
 	VarCache vars;		/* state of interesting server parameters */
 
 	SBuf sbuf;		/* stream buffer, must be last */
@@ -431,6 +433,8 @@ extern int cf_disable_pqexec;
 extern usec_t cf_dns_max_ttl;
 extern usec_t cf_dns_nxdomain_ttl;
 extern usec_t cf_dns_zone_check_period;
+
+extern int cf_cache_plans;
 
 extern int cf_auth_type;
 extern char *cf_auth_file;
