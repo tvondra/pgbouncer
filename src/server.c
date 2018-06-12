@@ -337,6 +337,17 @@ static bool handle_server_work(PgSocket *server, PktHdr *pkt)
 	server->ready = ready;
 	server->pool->stats.server_bytes += pkt->len;
 
+	if (idle_tx)
+	{
+		server->idle_tx_start = get_cached_time();
+		slog_warning(server, "XXX setting idle_start = %lu", server->idle_tx_start);
+	}
+	else
+	{
+		slog_warning(server, "XXX resetting idle_tx_start = 0");
+		server->idle_tx_start = 0;
+	}
+
 	if (server->setting_vars) {
 		Assert(client);
 		sbuf_prepare_skip(sbuf, pkt->len);

@@ -361,6 +361,7 @@ struct PgSocket {
 	usec_t query_start;	/* query start moment */
 	usec_t xact_start;	/* xact start moment */
 	usec_t wait_start;	/* waiting start moment */
+	usec_t idle_tx_start;	/* 'idle in transaction' start moment */
 
 	uint8_t cancel_key[BACKENDKEY_LEN]; /* client: generated, server: remote */
 	PgAddr remote_addr;	/* ip:port for remote endpoint */

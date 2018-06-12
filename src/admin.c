@@ -564,15 +564,15 @@ static bool admin_show_users(PgSocket *admin, const char *arg)
 	return true;
 }
 
-#define SKF_STD "sssssisiTTiissis"
-#define SKF_DBG "sssssisiTTiissisiiiiiii"
+#define SKF_STD "sssssisiTTiiissis"
+#define SKF_DBG "sssssisiTTiiissisiiiiiii"
 
 static void socket_header(PktBuf *buf, bool debug)
 {
 	pktbuf_write_RowDescription(buf, debug ? SKF_DBG : SKF_STD,
 				    "type", "user", "database", "state",
 				    "addr", "port", "local_addr", "local_port",
-				    "connect_time", "request_time",
+				    "connect_time", "request_time", "idle_in_tx",
 				    "wait", "wait_us",
 				    "ptr", "link", "remote_pid", "tls",
 				    /* debug follows */
@@ -596,6 +596,7 @@ static void socket_row(PktBuf *buf, PgSocket *sk, const char *state, bool debug)
 	char infobuf[96] = "";
 	usec_t now = get_cached_time();
 	usec_t wait_time = sk->query_start ? now - sk->query_start : 0;
+	usec_t idle_tx_time = sk->idle_tx ? now - sk->idle_tx_start : 0;
 
 	if (io) {
 		pkt_avail = iobuf_amount_parse(sk->sbuf.io);
@@ -631,6 +632,7 @@ static void socket_row(PktBuf *buf, PgSocket *sk, const char *state, bool debug)
 			     l_addr, pga_port(&sk->local_addr),
 			     sk->connect_time,
 			     sk->request_time,
+			     idle_tx_time,
 			     (int)(wait_time / USEC),
 			     (int)(wait_time % USEC),
 			     ptrbuf, linkbuf, remote_pid, infobuf,
